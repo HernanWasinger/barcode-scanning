@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Vistas de whatsapp.meta.account.
+
+    - Lista: nombre, phone_number_id, api_version, active, last_status_code
+    - Formulario: credenciales, webhook URL, botones (Probar, Enviar prueba, Sincronizar)
+    - Pestañas: Última respuesta, Logs, Templates Meta
+    - Menú: Configuración > WhatsApp Meta > Cuentas
+-->
+<odoo>
+    <!-- Vista lista: resumen operativo de la cuenta y ultimo estado -->
+    <record id="view_whatsapp_meta_account_list" model="ir.ui.view">
+        <field name="name">whatsapp.meta.account.list</field>
+        <field name="model">whatsapp.meta.account</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="phone_number_id"/>
+                <field name="api_version"/>
+                <field name="active"/>
+                <field name="last_status_code"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista formulario: configuracion completa + acciones de prueba -->
+    <record id="view_whatsapp_meta_account_form" model="ir.ui.view">
+        <field name="name">whatsapp.meta.account.form</field>
+        <field name="model">whatsapp.meta.account</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Meta Account">
+                <header>
+                    <!-- Valida conectividad real contra Graph API -->
+                    <button
+                        name="action_test_connection"
+                        type="object"
+                        string="Probar conexion"
+                    />
+                    <button
+                        name="action_send_test_template"
+                        type="object"
+                        string="Enviar prueba"
+                        class="btn-primary"
+                    />
+                    <button
+                        name="action_sync_templates"
+                        type="object"
+                        string="Sincronizar templates"
+                    />
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="active"/>
+                            <!-- Credencial principal para llamadas a Graph API -->
+                            <field name="token" password="1"/>
+                            <!-- Usado para validar firma de webhook -->
+                            <field name="app_secret" password="1"/>
+                            <!-- Usado en handshake GET del webhook -->
+                            <field name="verify_token"/>
+                            <!-- ID tecnico del numero emisor en Meta -->
+                            <field name="phone_number_id"/>
+                            <!-- WABA ID (opcional para administracion/sync) -->
+                            <field name="business_account_id"/>
+                            <field name="api_version"/>
+                        </group>
+                        <group>
+                            <!-- URL que se configura en Meta como callback -->
+                            <field name="webhook_url" readonly="1"/>
+                            <field name="connected" readonly="1"/>
+                            <field name="last_status_code" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Ultima respuesta">
+                            <!-- Guarda body crudo de la ultima llamada -->
+                            <field name="last_response_readable" readonly="1" nolabel="1"/>
+                            <field name="last_response" invisible="1"/>
+                        </page>
+                        <page string="Logs">
+                            <!-- Historico simplificado de trafico in/out -->
+                            <field name="log_ids" readonly="1">
+                                <tree>
+                                    <field name="create_date"/>
+                                    <field name="direction"/>
+                                    <field name="operation"/>
+                                    <field name="response_status"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Templates Meta">
+                            <field name="template_ids" readonly="1" domain="[('status', '=', 'APPROVED')]">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="language_code"/>
+                                    <field name="status"/>
+                                    <field name="body_params_count"/>
+                                    <field name="category"/>
+                                    <field name="quality_score"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Accion principal para administrar cuentas -->
+    <record id="action_whatsapp_meta_account" model="ir.actions.act_window">
+        <field name="name">WhatsApp Meta</field>
+        <field name="res_model">whatsapp.meta.account</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Menus administrativos del modulo -->
+    <menuitem
+        id="menu_whatsapp_meta_root"
+        name="WhatsApp Meta"
+        parent="base.menu_administration"
+        sequence="90"
+    />
+    <menuitem
+        id="menu_whatsapp_meta_account"
+        name="Cuentas"
+        parent="menu_whatsapp_meta_root"
+        action="action_whatsapp_meta_account"
+        sequence="10"
+    />
+</odoo>

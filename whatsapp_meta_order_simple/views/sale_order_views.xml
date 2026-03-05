@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Vistas de sale.order para WhatsApp Meta.
+
+    Hereda el formulario de pedidos y añade:
+    - Botón "Enviar WhatsApp": abre wizard para elegir template y enviar
+    - Botón "Cerrar WhatsApp": cierra la conversación (visible solo si está abierta)
+    - Botón "Enviar orden por WhatsApp": envía el resumen del pedido (visible solo si conversación abierta)
+    - Statusbar del estado de conversación (abierta/cerrada)
+-->
+<odoo>
+    <record id="view_order_form_whatsapp_meta" model="ir.ui.view">
+        <field name="name">sale.order.form.whatsapp.meta</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_send_whatsapp_meta"
+                    type="object"
+                    string="Enviar WhatsApp"
+                    class="btn-secondary"
+                    attrs="{'invisible': [('state', '=', 'cancel')]}"
+                />
+                <button
+                    name="action_send_order_summary_whatsapp"
+                    type="object"
+                    string="Enviar orden por WhatsApp"
+                    class="btn-secondary"
+                    attrs="{'invisible': ['|', ('state', '=', 'cancel'), ('whatsapp_conversation_state', '!=', 'open')]}"
+                />
+                <button
+                    name="action_close_whatsapp_conversation"
+                    type="object"
+                    string="Cerrar WhatsApp"
+                    class="btn-secondary"
+                    attrs="{'invisible': ['|', ('state', '=', 'cancel'), ('whatsapp_conversation_state', '!=', 'open')]}"
+                />
+                <field name="whatsapp_conversation_state" widget="statusbar"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
